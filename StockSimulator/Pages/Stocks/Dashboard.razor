@@ -1,0 +1,118 @@
+﻿@page "/dashboard"
+@inject ILogger logger
+@inject StockService stockService
+@attribute [Authorize]
+
+<PageTitle>Dashboard</PageTitle>
+
+<section>
+    <h1>
+        Dashboard
+    </h1>
+    <article>
+        <h3>Your Stock@(user?.Stocks?.Count is { } amm ? amm > 1 ? "s" : "" : "")</h3>
+        <a style="color:green" href="/buy-stocks" type="button" >Buy Stocks</a>
+        @if (user?.Stocks is not null && user.Stocks.Any())
+        {
+            <table role="list">
+            <thead>
+                <tr>Ticker</tr>
+                <tr>
+                    <td>
+                        Current Stock Price
+                        <button @onclick=RefreshStockPrices aria-busy="@(!AllStocksLoaded)" ><i hidden="@AllStocksLoaded" class="material-icons">refresh</i></button>
+                    </td>
+                </tr>
+                <tr>Profit</tr>
+                
+            </thead>
+            <tbody>
+                @foreach(var item in stockList!)
+                {
+                    <tr>
+                        <td>
+                            item.priceInfo.Ticker
+                        </td>
+                        <td>
+                            @switch (item.loadingState)
+                            {
+                                case LoadingState.InitialLoad:
+                                    <button aria-busy="true"/>
+                                    break;
+                                case LoadingState.Loaded:
+                                    <p>$@item.priceInfo.Price.ToString("F2")</p>
+                                    <input @onclick=@(() => RefreshStockPrice(item)) type="button" class="secondary"> <i class="material-icons">refresh</i> <input />
+                                    break;
+                                case LoadingState.Refreshing:
+                                    <button aria-busy="true">$@item.priceInfo.Price.ToString("F2")</button>
+                                    break;
+                                default:
+                                    throw new ArgumentOutOfRangeException();
+                            }
+                        </td>
+                        <td>
+                            @if(item.loadingState == LoadingState.Loaded)
+                            {
+                                var stock = user!.Stocks.First(x => x.Ticker == item.priceInfo.Ticker);
+                                var profit = item.priceInfo.Price - stock.PriceBoughtAt;
+                                var profitColor = profit > 0 ? "green" : "red";
+                                <p style="color:@profitColor">$@profit.ToString("F2")</p>
+
+                            })
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        }
+        else
+        {
+            <h4>You dont own any stocks yet!</h4>
+        }
+        
+    </article>
+</section>
+@code {
+    [CascadingParameter]
+    public MainLayout? Layout { get; set; }
+    private User? user => Layout?.User;
+    private List<(PriceInfo priceInfo, LoadingState loadingState)>? stockList;
+
+    private bool AllStocksLoaded => stockList?.All(x => x.loadingState != LoadingState.Loaded) ?? false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        stockList = new (user?.Stocks?.Count ?? 0);
+        if(user?.Stocks is { } stocks && stocks.Count > 0 )
+            await stockService.BatchGetCurrentStockPrices(user.Stocks.Select(x => x.Ticker).ToArray()).Then(x => x.ForEach(p => stockList.Add(new (p,LoadingState.Loaded))));
+
+
+    }
+
+    private async Task RefreshStockPrices()
+    {
+        stockList!.ForEach(x => x.loadingState = LoadingState.Refreshing);
+        StateHasChanged();
+        await stockService.BatchGetCurrentStockPrices(user.Stocks.Select(x => x.Ticker).ToArray()).Then(x => x.ForEach((p,index) => {
+            stockList[index] = new(p, LoadingState.Loaded);
+            StateHasChanged();
+        }));
+    }
+    private async Task RefreshStockPrice((PriceInfo priceInfo, LoadingState loadingState) item)
+    {
+        item.loadingState = LoadingState.Refreshing;
+        StateHasChanged();
+        var res = await stockService.GetTickerDataAsync(item.priceInfo.Ticker);
+        var stock = stockList!.First(x => x.priceInfo == item.priceInfo);
+        stock.priceInfo.Price = res.Match(x => x, _ => item.priceInfo.Price);
+        stock.loadingState = LoadingState.Loaded;
+        StateHasChanged();
+    }
+    private enum LoadingState
+    {
+        InitialLoad,
+        Loaded,
+        Refreshing
+    }
+}

@@ -1,0 +1,90 @@
+﻿@page "/buy-stocks"
+@inject StockService StockService
+@inject NavigationManager NavigationManager 
+@inject IDbContextFactory<DatabaseContext> Factory;
+
+
+<h3>Buy Stock</h3>
+
+<input type="text" @onkeyup="SearchForStock" placeholder="Search for stock or symbol here" @bind-value="_searchTerm" @bind-value:event="oninput"/>
+
+@if (_isBusy)
+{
+    <button aria-busy="true" >Loading...</button>
+}
+else if (!_searchResults.Any())
+{
+    <button style="background-color: dimgrey">No Results</button>
+}
+else
+{
+    <table>
+        <thead>
+        <tr>
+            <th>Ticker</th>
+            <th>Name</th>
+            <th></th>
+        </tr>
+
+
+        </thead>
+        <tbody>
+
+
+        @foreach (var item in _searchResults)
+        {
+            <tr>
+                <td>@item.Symbol</td>
+                <td>@item.Name</td>
+                <td>
+                    <a href="#" role="button"  style="background-color: green;align-self: center">Buy</a>
+                </td>
+            </tr>
+        }
+
+        </tbody>
+    </table>
+}
+
+@code {
+
+    [CascadingParameter]
+    public MainLayout? Layout { get; set; }
+
+    private User? user => Layout?.User;
+
+    private string _searchTerm = "";
+    private bool _isBusy = true;
+
+    private LinkedList<BareStock> _searchResults = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        using var context = Factory.CreateDbContext();
+        
+        _searchResults = new LinkedList<BareStock>(context.BareStocks);
+        _isBusy = false;
+        StateHasChanged();
+    }
+
+
+    private void SearchForStock()
+    {
+        
+        _isBusy = true;
+        StateHasChanged();
+        using var context =  Factory.CreateDbContext();
+        var stocks = context.BareStocks.Where(s => s.Symbol.ToLower().Contains(_searchTerm.ToLower()) || s.Name.ToLower().Contains(_searchTerm.ToLower())).Take(20);
+   
+        _searchResults = new LinkedList<BareStock>(stocks);
+        _isBusy = false;
+        StateHasChanged();
+    }
+
+}

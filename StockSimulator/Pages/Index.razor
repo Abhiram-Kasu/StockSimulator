@@ -1,0 +1,42 @@
+﻿@page "/"
+@inject ILogger logger
+@inject StockService stockService
+
+<PageTitle>Home page</PageTitle>
+
+<section>
+    <article>
+        <AuthorizeView>
+            <Authorized>
+                
+                <h1>
+                    Hello, @context!.User.Identity.Name!
+                </h1>
+                
+              
+                 <a role="button" class="contrast outline" href="/dashboard">View your stocks</a>
+                
+            </Authorized>
+            <NotAuthorized>
+                <h1>You are not <strong>Logged In</strong>!</h1>
+                <a href="/login">Click here to log in</a>
+            </NotAuthorized>
+        </AuthorizeView>
+        
+        
+    </article>
+</section>
+@code {
+ 
+    protected override async Task OnInitializedAsync()
+    {
+        logger.Information($"Initialized at {DateTime.Now}");
+        
+        
+
+
+    }
+
+
+    
+}

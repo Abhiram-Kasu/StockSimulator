@@ -1,0 +1,19 @@
+﻿@page "/admin/dashboard"
+@attribute [Authorize]
+
+<PageTitle>Admin Dashboard</PageTitle>
+
+<section>
+    <article>
+        <AuthorizeView Roles="@CustomRoles.Admin">
+            <Authorized>
+                <h1>
+                    Admin Dashboard
+                </h1>
+            </Authorized>
+            <NotAuthorized>
+                <p>Sorry, you do not have the proper permissions to access this page.</p>
+            </NotAuthorized>
+        </AuthorizeView>
+    </article>
+</section>

@@ -1,0 +1,47 @@
+﻿@page "/login"
+@model StockSimulator.Pages.Auth.LoginModel
+@{
+	Layout = "_AuthLayout";
+	ViewData["Title"] = "Login";
+}
+<section>
+	<a href="/" class="secondary">
+		← back to home page
+	</a>
+	<article>
+		<h1>Login to your account</h1>
+		<form method="post">
+			@Html.ValidationSummary()
+			<div>
+				<label asp-for="Input.Email">
+					Email address
+				</label>
+				<input asp-for="Input.Email" type="email" autocomplete="email" required />
+				<small>@Html.ValidationMessageFor(m => m.Input.Email)</small>
+			</div>
+			<div>
+				<label asp-for="Input.Password">
+					Password
+				</label>
+				<input asp-for="Input.Password" type="password" autocomplete="current-password" required />
+				<small>@Html.ValidationMessageFor(m => m.Input.Password)</small>
+			</div>
+			<fieldset>
+				<label asp-for="Input.RememberMe" class="inline-flex items-center">
+					Remember me
+					<input asp-for="Input.RememberMe" role="switch" type="checkbox">
+				</label>
+			</fieldset>
+			<div class="grid">
+				<button type="submit">
+					Login
+				</button>
+			</div>
+		</form>
+		<footer>
+			<a href="/register" class="secondary">
+				Don't have an account? Sign up
+			</a>
+		</footer>
+	</article>
+</section>
