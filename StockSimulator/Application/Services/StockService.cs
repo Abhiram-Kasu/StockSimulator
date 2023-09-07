@@ -61,6 +61,12 @@ namespace StockSimulator.Application.Services
             _logger.LogWarning("Failed to fetch current price for {Ticker}", ticker);
             return new FetchPriceError();
         }
+
+        public async Task<List<BareStock>> GetAllBareStocks()
+        {
+            await using var context = await _factory.CreateDbContextAsync();
+            return await context.BareStocks.ToListAsync();
+        }
         
        
 

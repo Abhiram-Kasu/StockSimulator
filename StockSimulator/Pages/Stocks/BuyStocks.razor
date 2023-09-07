@@ -1,90 +1,68 @@
 ﻿@page "/buy-stocks"
-@inject StockService StockService
-@inject NavigationManager NavigationManager 
-@inject IDbContextFactory<DatabaseContext> Factory;
+@inject StockService StockService 
 
-
-<h3>Buy Stock</h3>
-
-<input type="text" @onkeyup="SearchForStock" placeholder="Search for stock or symbol here" @bind-value="_searchTerm" @bind-value:event="oninput"/>
-
-@if (_isBusy)
+@if (_loading) 
 {
-    <button aria-busy="true" >Loading...</button>
-}
-else if (!_searchResults.Any())
-{
-    <button style="background-color: dimgrey">No Results</button>
+    <p>Loading...</p>
 }
 else
 {
-    <table>
-        <thead>
-        <tr>
-            <th>Ticker</th>
-            <th>Name</th>
-            <th></th>
-        </tr>
 
+    <h3>Buy Stocks</h3>
 
-        </thead>
-        <tbody>
+    <input placeholder="Search for a Stock here: " @oninput="SearchStocks"/>
 
+    @if (_searchResults.Count == 0)
+    {
+        <p>No results found.</p> 
+    }
+    else
+    {
+        <table>
+            @foreach (var result in _searchResults)
+            {
+                <tr>
+                    <td>@result.Symbol</td>
+                    <td>@result.Name</td>
+                    <td>
+                        <button style="background-color: green" @onclick="@(() => BuyStock(result))">Buy</button>
+                    </td>
+                </tr>
+            }
+        </table>
+    }
 
-        @foreach (var item in _searchResults)
-        {
-            <tr>
-                <td>@item.Symbol</td>
-                <td>@item.Name</td>
-                <td>
-                    <a href="#" role="button"  style="background-color: green;align-self: center">Buy</a>
-                </td>
-            </tr>
-        }
-
-        </tbody>
-    </table>
 }
 
 @code {
 
-    [CascadingParameter]
-    public MainLayout? Layout { get; set; }
-
-    private User? user => Layout?.User;
-
-    private string _searchTerm = "";
-    private bool _isBusy = true;
-
-    private LinkedList<BareStock> _searchResults = new();
+    private bool _loading = true;
+    private List<BareStock> _allStocks = new();
+    private string _searchTerm;
+    private List<BareStock> _searchResults = new();
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
+        _allStocks = await StockService.GetAllBareStocks();
+        _loading = false;
     }
 
-    protected override void OnAfterRender(bool firstRender)
+    private void SearchStocks(ChangeEventArgs args)
     {
-        base.OnAfterRender(firstRender);
-        using var context = Factory.CreateDbContext();
-        
-        _searchResults = new LinkedList<BareStock>(context.BareStocks);
-        _isBusy = false;
-        StateHasChanged();
+        _searchTerm = args.Value as string ?? throw new NullReferenceException();
+        if (string.IsNullOrEmpty(_searchTerm))
+        {
+            _searchResults.Clear();
+            return;
+        }
+        _searchResults = _allStocks
+            .Where(s => s.Name.Contains(_searchTerm) || s.Symbol.Contains(_searchTerm))
+            .ToList();
     }
-
-
-    private void SearchForStock()
+  
+    private void BuyStock(BareStock stock) 
     {
-        
-        _isBusy = true;
-        StateHasChanged();
-        using var context =  Factory.CreateDbContext();
-        var stocks = context.BareStocks.Where(s => s.Symbol.ToLower().Contains(_searchTerm.ToLower()) || s.Name.ToLower().Contains(_searchTerm.ToLower())).Take(20);
-   
-        _searchResults = new LinkedList<BareStock>(stocks);
-        _isBusy = false;
-        StateHasChanged();
+    // Redirect to buy page 
     }
 
 }
