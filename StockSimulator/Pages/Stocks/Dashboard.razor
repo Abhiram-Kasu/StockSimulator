@@ -11,7 +11,7 @@
     </h1>
     <article>
         <h3>Your Stock@(user?.Stocks?.Count is { } amm ? amm > 1 ? "s" : "" : "")</h3>
-        <a style="color:green" href="/buy-stocks" type="button" >Buy Stocks</a>
+        <a style="color:green" href=/view-bare-stocks type="button" >Buy Stocks</a>
         @if (user?.Stocks is not null && user.Stocks.Any())
         {
             <table role="list">

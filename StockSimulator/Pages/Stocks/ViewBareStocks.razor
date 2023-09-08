@@ -1,5 +1,6 @@
-﻿@page "/buy-stocks"
+﻿@page "/view-bare-stocks"
 @inject StockService StockService 
+@inject NavigationManager NavigationManager
 
 @if (_loading) 
 {
@@ -25,7 +26,7 @@ else
                     <td>@result.Symbol</td>
                     <td>@result.Name</td>
                     <td>
-                        <button style="background-color: green" @onclick="@(() => BuyStock(result))">Buy</button>
+                        <button style="background-color: green" @onclick="@(() => NavigationManager.NavigateTo($"/buy-stock/{result.Symbol}"))">Buy</button>
                     </td>
                 </tr>
             }
@@ -60,9 +61,6 @@ else
             .ToList();
     }
   
-    private void BuyStock(BareStock stock) 
-    {
-    // Redirect to buy page 
-    }
+   
 
 }
