@@ -1,10 +1,40 @@
 ﻿@page "/buy-stock/{Symbol}"
+@inject StockService StockService
 
 
 <h3>Buy @Symbol</h3>
 
+<div class="flex">
+    @if (priceInfo != PriceInfo.EmptyPriceInfo)
+    {
+        <h1 style="color: @(priceInfo.IsUp ? "green" : "red")">@priceInfo.Price</h1>
+    }
+    else
+    {
+        
+        <i  class="material-icons">refresh</i>
+    }
+
+</div>
+
 @code {
-    [Parameter]
-    public string Symbol { get; set; }
     
+    [Parameter]
+    public string Symbol { get; init; }
+
+    private PriceInfo priceInfo = PriceInfo.EmptyPriceInfo;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        var price = await StockService.GetTickerDataAsync(Symbol).Then(x => x.Match(p => p, error => PriceInfo.EmptyPriceInfo));
+        if (price == PriceInfo.EmptyPriceInfo) throw new Exception("Could not find price");
+        
+        priceInfo = price;
+
+
+    }
+
+
+
 }

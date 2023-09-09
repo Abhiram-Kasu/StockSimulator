@@ -26,7 +26,7 @@ namespace StockSimulator.Application.Tasks
             const string function = "LISTING_STATUS";
             const string exchange = "NASDAQ";
 
-            var requestUri = $"{baseUrl}?function={function}&apikey={apiKey}&exchange={exchange}";
+            var requestUri = $"{baseUrl}?function={function}&apikey={apiKey}";
 
             var res = await _httpClient.GetStringAsync(requestUri);
             _logger.LogInformation("HTTP request completed successfully");
@@ -52,14 +52,22 @@ namespace StockSimulator.Application.Tasks
                 var stock = new BareStock { Symbol = arr[0], Name = arr[1], Exchange = arr[2] };
                 _logger.LogInformation("Parsed stock: Symbol={Symbol}, Name={Name}, Exchange={Exchange}", stock.Symbol, stock.Name, stock.Exchange);
                 return stock;
-            }).Where(x => x != null).Where(x => x!.Exchange == "NASDAQ");
+            }).Where(x => x != null);
 
             _logger.LogInformation("Filtered and prepared listings");
 
             await using var context = await _factory.CreateDbContextAsync();
             _logger.LogInformation("Created DbContext");
 
-            await context.BareStocks.AddRangeAsync(listings!);
+            foreach (var listing in listings) {
+                if (await context.BareStocks.AnyAsync(s => s.Symbol == listing.Symbol)) {
+                    _logger.LogWarning("Stock {Symbol} already exists, skipping", listing.Symbol);
+                    continue; 
+                }
+
+                await context.BareStocks.AddAsync(listing);
+                _logger.LogInformation("Added stock {Symbol} to DbContext", listing.Symbol);
+            }
             _logger.LogInformation("Added listings to DbContext");
 
             await context.SaveChangesAsync();

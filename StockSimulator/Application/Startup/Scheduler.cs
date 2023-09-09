@@ -12,7 +12,8 @@ namespace StockSimulator.Application.Startup
                 // example scheduled job
                 scheduler
                     .Schedule<GetBareStocksTask>()
-                    .DailyAtHour(1);
+                //.EveryMinute();
+                .DailyAtHour(1);
             });
             return services;
         }

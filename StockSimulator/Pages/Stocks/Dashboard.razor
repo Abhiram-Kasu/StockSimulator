@@ -105,7 +105,7 @@
         StateHasChanged();
         var res = await stockService.GetTickerDataAsync(item.priceInfo.Ticker);
         var stock = stockList!.First(x => x.priceInfo == item.priceInfo);
-        stock.priceInfo.Price = res.Match(x => x, _ => item.priceInfo.Price);
+        stock.priceInfo.Price = res.Match(x => x.Price, _ => item.priceInfo.Price);
         stock.loadingState = LoadingState.Loaded;
         StateHasChanged();
     }

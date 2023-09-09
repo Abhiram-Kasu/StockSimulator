@@ -30,14 +30,16 @@ namespace StockSimulator.Application.Services
         {
             _logger.LogInformation("Fetching current prices for {TickerCount} tickers", tickers.Length);
 
-            var results = await Task.WhenAll(tickers.Distinct().AsParallel().Select(async x => await GetTickerDataAsync(x).Then<OneOf<decimal,FetchPriceError>,PriceInfo>(res => res.Match(price => new PriceInfo(x, price), err => new PriceInfo()))));
+            var results = await Task.WhenAll(tickers.Distinct().Select(async x =>
+                await GetTickerDataAsync(x).Then(res =>
+                    res.Match(pInfo => pInfo, err => PriceInfo.EmptyPriceInfo))));
 
             _logger.LogInformation("Received all {TickerCount} ticker prices", results.Length);
 
             return results.Where(x => x != PriceInfo.EmptyPriceInfo).ToList();
         }
 
-        public async Task<OneOf<decimal, FetchPriceError>> GetTickerDataAsync(string ticker)
+        public async Task<OneOf<PriceInfo, FetchPriceError>> GetTickerDataAsync(string ticker)
         {
             _logger.LogInformation("Fetching current price for {Ticker}", ticker);
 
@@ -52,10 +54,10 @@ namespace StockSimulator.Application.Services
             var json = await response.Content.ReadAsStringAsync();
             var jObject = JsonConvert.DeserializeObject<JObject>(json);
 
-            if (jObject?["Global Quote"]?["05. price"]?.Value<decimal>() is { } price)
+            if (jObject?["Global Quote"]?["05. price"]?.Value<decimal>() is { } price && jObject?["Global Quote"]?["08. previous close"]?.Value<decimal>() is { } previousClose)
             {
                 _logger.LogInformation("Fetched current price {Price} for {Ticker}", price, ticker);
-                return price;
+                return new PriceInfo(ticker, price, price > previousClose);
             }
 
             _logger.LogWarning("Failed to fetch current price for {Ticker}", ticker);
