@@ -1,5 +1,6 @@
 ﻿@page "/buy-stock/{Symbol}"
 @inject StockService StockService
+@attribute [Authorize]
 
 
 <h3>Buy @Symbol</h3>
@@ -8,33 +9,55 @@
     @if (priceInfo != PriceInfo.EmptyPriceInfo)
     {
         <h1 style="color: @(priceInfo.IsUp ? "green" : "red")">@priceInfo.Price</h1>
+        <input type="number" min="1" @bind="_quantity" @bind:event="oninput"/>
+        <p>Total Cost: @TotalPrice.ToString("C")</p>
+        @if (_quantity < 1 || TotalPrice > user.Balance)
+        {
+            <p style="color: red">@(_quantity < 1 ? "Quantity cannot be 0" : TotalPrice > user.Balance ? "Not enough funds" : "")</p>
+        }
+
+        <button @onclick="PlaceOrder" disabled="@(_quantity < 1 || TotalPrice > user.Balance)">
+            Buy
+        </button>
     }
     else
     {
-        
-        <i  class="material-icons">refresh</i>
+        <i class="material-icons">refresh</i>
     }
 
 </div>
 
 @code {
-    
+
+    [CascadingParameter]
+    public MainLayout? Layout { get; set; }
+
+    private User? user => Layout?.User;
+
     [Parameter]
     public string Symbol { get; init; }
 
     private PriceInfo priceInfo = PriceInfo.EmptyPriceInfo;
+
+    private int _quantity = 1;
+
+    private decimal TotalPrice => _quantity * priceInfo.Price;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
         var price = await StockService.GetTickerDataAsync(Symbol).Then(x => x.Match(p => p, error => PriceInfo.EmptyPriceInfo));
         if (price == PriceInfo.EmptyPriceInfo) throw new Exception("Could not find price");
-        
+
         priceInfo = price;
+    }
 
-
+    private async Task PlaceOrder()
+    {
+    // call service to place order
     }
 
 
 
 }
+

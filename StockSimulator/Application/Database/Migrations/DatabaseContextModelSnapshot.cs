@@ -150,8 +150,8 @@ namespace StockSimulator.Application.Database.Migrations
                         .HasColumnType("INTEGER")
                         .HasColumnName("id");
 
-                    b.Property<int>("Balance")
-                        .HasColumnType("INTEGER")
+                    b.Property<decimal>("Balance")
+                        .HasColumnType("TEXT")
                         .HasColumnName("balance");
 
                     b.Property<DateTime>("CreatedAt")

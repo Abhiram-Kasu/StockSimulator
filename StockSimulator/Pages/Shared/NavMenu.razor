@@ -9,14 +9,17 @@
 	<ul>
 		<AuthorizeView>
 			<Authorized>
+					<button style="background-color: seagreen;margin: 10px;padding: 10px;" class="primary m-2">@user.Balance.ToString("C")</button>
 				<li>
 					<details role="list" dir="rtl">
+
 						<summary aria-haspopup="listbox" role="link">Account</summary>
 						<ul role="listbox">
 							<li><a href="/dashboard">Dashboard</a></li>
 							<li><a href="/profile/edit">Profile</a></li>
 							<li><a href="/logout">Logout</a></li>
 							<li><small>@user.Name</small></li>
+
 						</ul>
 					</details>
 				</li>

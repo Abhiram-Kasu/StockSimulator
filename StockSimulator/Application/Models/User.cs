@@ -15,7 +15,7 @@ namespace StockSimulator.Application.Models
 
         public string Password { get; set; }
         public virtual ICollection<Stock> Stocks { get; set; }
-        public int Balance { get; set; }
+        public decimal Balance { get; set; }
 
         public string? RememberToken { get; set; }
 
