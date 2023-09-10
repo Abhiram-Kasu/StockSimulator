@@ -41,6 +41,7 @@ namespace StockSimulator.Application.Services
 
         public async Task<OneOf<PriceInfo, FetchPriceError>> GetTickerDataAsync(string ticker)
         {
+            await Task.Delay(3000);
             _logger.LogInformation("Fetching current price for {Ticker}", ticker);
 
             // Construct API URL with dates

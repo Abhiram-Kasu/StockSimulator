@@ -26,7 +26,7 @@ namespace StockSimulator.Application.Database
       
             builder.Entity<User>()
                 .HasMany(u => u.Stocks)
-                .WithOne()
+                .WithOne(s => s.User) 
                 .HasForeignKey(s => s.UserId);
             
             builder.Entity<User>(entity =>

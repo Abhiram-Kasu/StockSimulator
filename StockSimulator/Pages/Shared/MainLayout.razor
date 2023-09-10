@@ -24,4 +24,6 @@
             User = await authService.GetAuthenticatedUser();
         }
     }
+
+    public void Update() => StateHasChanged();
 }

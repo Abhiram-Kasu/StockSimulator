@@ -21,7 +21,7 @@ namespace StockSimulator.Application.Services.Auth
         public async Task<User?> FindUserAsync(int userId)
         {
             using var context = _factory.CreateDbContext();
-            return await context.Users.FindAsync(userId);
+            return await context.Users.Include(x => x.Stocks).FirstAsync(x => x.Id == userId);
         }
 
         public async Task<User?> FindUserAsync(string username, string password)

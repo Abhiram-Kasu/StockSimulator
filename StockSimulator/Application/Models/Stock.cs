@@ -11,5 +11,7 @@ namespace StockSimulator.Application.Models
         public string Ticker { get; set; }
         public int Amount { get; set; }
         public decimal PriceBoughtAt { get; set; }
+
+        public virtual User User { get; set; }
     }
 }

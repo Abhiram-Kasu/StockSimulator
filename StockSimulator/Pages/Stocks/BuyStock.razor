@@ -1,6 +1,8 @@
 ﻿@page "/buy-stock/{Symbol}"
 @inject StockService StockService
 @attribute [Authorize]
+@inject IDbContextFactory<DatabaseContext> Factory
+@inject NavigationManager NavigationManager
 
 
 <h3>Buy @Symbol</h3>
@@ -46,7 +48,7 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        var price = await StockService.GetTickerDataAsync(Symbol).Then(x => x.Match(p => p, error => PriceInfo.EmptyPriceInfo));
+        var price = await StockService.GetTickerDataAsync(Symbol).Then(x => x.Match(p => p, _ => PriceInfo.EmptyPriceInfo));
         if (price == PriceInfo.EmptyPriceInfo) throw new Exception("Could not find price");
 
         priceInfo = price;
@@ -54,7 +56,21 @@
 
     private async Task PlaceOrder()
     {
-    // call service to place order
+        await using var context = await Factory.CreateDbContextAsync(); 
+        
+        var dbUser = await context.Users.FindAsync(user.Id);
+        context.Stocks.Add(new Stock
+        {
+            Amount = _quantity,
+            PriceBoughtAt = priceInfo.Price,
+            Ticker = Symbol,
+            UserId = user.Id
+        });
+        dbUser!.Balance -= TotalPrice;
+        await context.SaveChangesAsync();
+        Layout?.Update();
+        NavigationManager.NavigateTo("/dashboard");
+
     }
 
 

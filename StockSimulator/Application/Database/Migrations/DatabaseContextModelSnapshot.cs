@@ -220,12 +220,14 @@ namespace StockSimulator.Application.Database.Migrations
 
             modelBuilder.Entity("StockSimulator.Application.Models.Stock", b =>
                 {
-                    b.HasOne("StockSimulator.Application.Models.User", null)
+                    b.HasOne("StockSimulator.Application.Models.User", "User")
                         .WithMany("Stocks")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_stocks_users_user_id");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("StockSimulator.Application.Models.UserRole", b =>
