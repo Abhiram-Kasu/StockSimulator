@@ -92,7 +92,7 @@
     private User? user => Layout?.User;
     private List<StockVM>? stockList;
 
-    
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -106,15 +106,20 @@
             {
                 stockList[i] = new (prices[i], LoadingState.Loaded);
             }
-            
+
         }
 
+    }
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        StateHasChanged();
     }
 
     private async Task RefreshStockPrices()
     {
         stockList!.ForEach(x => x.LoadingState = LoadingState.Refreshing);
-        InvokeAsync(StateHasChanged);
+        await InvokeAsync(StateHasChanged);
         await stockService.BatchGetCurrentStockPrices(user.Stocks.Select(x => x.Ticker).ToArray()).Then(x => x.ForEach((p,index) => {
             stockList[index] = new(p, LoadingState.Loaded);
             StateHasChanged();
