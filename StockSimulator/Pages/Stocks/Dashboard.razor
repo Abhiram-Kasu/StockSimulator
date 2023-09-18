@@ -60,7 +60,8 @@
                                 var stock = user!.Stocks.First(x => x.Ticker == item.PriceInfo.Ticker);
                                 var profit = item.PriceInfo.Price - stock.PriceBoughtAt;
                                 var profitColor = profit > 0 ? "green" : "red";
-                                <p style="margin: 0;color:@profitColor">@profit.ToString("C")</p>
+                                    var displayPrice = profit >= 0 ? profit.ToString("C") : "-" + Math.Abs(profit).ToString("C"); 
+                                    <p style="margin: 0;color:@profitColor">@displayPrice</p>
                             }
                             else
                             {
