@@ -36,4 +36,10 @@
 	[CascadingParameter]
 	public MainLayout? Layout { get; set; }
 	private User? user => Layout.User;
+
+	protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+		Layout.RefreshRequested += StateHasChanged;
+    }
 }

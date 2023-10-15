@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Spark.Library.Environment;
@@ -17,6 +18,7 @@ namespace StockSimulator.Application.Services
         private readonly ILogger<StockService> _logger;
         private readonly string _apiKey;
         private readonly IDbContextFactory<DatabaseContext> _factory;
+        
 
         public StockService(HttpClient httpClient, ILogger<StockService> logger, IDbContextFactory<DatabaseContext> factory)
         {
@@ -24,6 +26,7 @@ namespace StockSimulator.Application.Services
             _httpClient = httpClient;
             _logger = logger;
             _factory = factory;
+            
         }
 
         public async Task<List<PriceInfo>> BatchGetCurrentStockPrices(string[] tickers)

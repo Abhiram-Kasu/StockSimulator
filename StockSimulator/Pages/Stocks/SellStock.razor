@@ -1,0 +1,67 @@
+﻿@page "/sell-stock/{StockId:int}"
+@inject IDbContextFactory<DatabaseContext> Factory
+@inject StockService StockService
+@inject NavigationManager NavigationManager
+
+<h3>Sell @stock.Ticker</h3>
+
+<div style="display:flex;">
+    <input type="number" min="1" max="@stock.Amount" @bind="_quantity" @bind:event="oninput"/>
+    <a href="" style="flex-basis:content;margin-bottom: var(--spacing);margin-inline-start: var(--spacing);" @onclick="() => _quantity = stock.Amount" role="button" class="contrast outline" @onclick:preventDefault>All</a>
+</div>
+@if (tickerData is null)
+{
+    <i class="material-icons spin">refresh</i>
+}
+else
+{
+
+<p>Total Revenue: @TotalPrice.ToString("C")</p>
+}
+<button disabled="@(tickerData is null)" @onclick="Sell" > Sell </button>
+
+
+@code {
+
+    [CascadingParameter]
+    public MainLayout? Layout { get; set; }
+
+    private User? user => Layout?.User;
+
+    [Parameter]
+    public int StockId { get; set; }
+
+    public decimal TotalPrice => _quantity * tickerData?.Price ?? 0;
+
+    private int _quantity = 1;
+    private decimal currPrice;
+
+    private Stock stock;
+    private PriceInfo? tickerData;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await using var context = await Factory.CreateDbContextAsync();
+        stock = (await context.Stocks.FindAsync(StockId))!;
+        tickerData = (await StockService.GetTickerDataAsync(stock.Ticker)).Match(x => x, x => null) ?? throw new Exception($"Unable to get price info for stock {stock.Ticker}");
+
+    }
+
+    private async Task Sell()
+    {
+        await using var context = await Factory.CreateDbContextAsync();
+        var dbUser = await context.Users.FindAsync(user.Id);
+        var dbStock = await context.Stocks.FindAsync(StockId);
+        dbUser.Balance += TotalPrice;
+        dbStock.Amount -= _quantity;
+        if (dbStock.Amount == 0)
+        {
+            context.Stocks.Remove(dbStock);
+        }
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/dashboard");
+        Layout.RequestRefresh();
+    }
+
+}

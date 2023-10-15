@@ -25,5 +25,6 @@
         }
     }
 
-    public void Update() => StateHasChanged();
+    public event Action? RefreshRequested;
+    public void RequestRefresh() => RefreshRequested?.Invoke();
 }

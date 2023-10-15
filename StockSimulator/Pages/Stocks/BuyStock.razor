@@ -57,7 +57,7 @@
     private async Task PlaceOrder()
     {
         await using var context = await Factory.CreateDbContextAsync(); 
-        
+
         var dbUser = await context.Users.FindAsync(user.Id);
         context.Stocks.Add(new Stock
         {
@@ -68,7 +68,7 @@
         });
         dbUser!.Balance -= TotalPrice;
         await context.SaveChangesAsync();
-        Layout?.Update();
+        Layout?.RequestRefresh();
         NavigationManager.NavigateTo("/dashboard");
 
     }
